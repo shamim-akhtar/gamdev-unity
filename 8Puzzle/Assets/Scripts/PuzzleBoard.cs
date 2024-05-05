@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PuzzleBoard : MonoBehaviour
 {
-    public List<Texture> fullTextures = new List<Texture>();
+    public List<Texture> puzzleImage = new List<Texture>();
     public GameObject tilePrefab;
+    public TMPro.TextMeshProUGUI statusText;
+
     List<GameObject> tiles = new List<GameObject>();
 
     private Dictionary<int, List<int>> edges = new Dictionary<int, List<int>>();
@@ -25,7 +28,7 @@ public class PuzzleBoard : MonoBehaviour
 
     PuzzleState currentState = null;
     bool solved = false; 
-    PuzzleState solvedState = new PuzzleState(3);
+    PuzzleState solvedState = new PuzzleState();
     Texture currentTexture = null;
     int currentTextureIndex = 0;
 
@@ -34,7 +37,7 @@ public class PuzzleBoard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentTexture = fullTextures[currentTextureIndex];
+        currentTexture = puzzleImage[currentTextureIndex];
         CreateNeighbourIndices(3);
         CreateTiles();
         Init();
@@ -43,9 +46,11 @@ public class PuzzleBoard : MonoBehaviour
     private void Init()
     {
         SetTexture();
-        currentState = new PuzzleState(3);
-        SetPuzzleState(currentState);
+        SetPuzzleState(new PuzzleState());
         solved = true;
+
+        statusText.gameObject.SetActive(true);
+        statusText.text = "Puzzle in solved state. Randomize to play!";
     }
 
     // Update is called once per frame
@@ -58,7 +63,7 @@ public class PuzzleBoard : MonoBehaviour
         if(Input.GetMouseButtonDown(0))
         {
             GameObject obj = Pick3D();
-            if(obj != null)
+            if(obj != null && !solved)
             {
                 //Debug.Log(obj.name);
                 // check for tile movement.
@@ -74,7 +79,9 @@ public class PuzzleBoard : MonoBehaviour
                         solved = currentState.Equals(solvedState);
                         if(solved)
                         {
-                            Debug.Log("Puzzle Solved");
+                            //Debug.Log("Puzzle Solved");
+                            statusText.gameObject.SetActive(true);
+                            statusText.text = "Yay! You have solved the Puzzle. Click Next to play a new Puzzle!";
                         }
                     }
                 }
@@ -142,6 +149,7 @@ public class PuzzleBoard : MonoBehaviour
 
     public void SetPuzzleState(PuzzleState state)
     {
+        currentState = state;
         for (int i = 0; i < state.Arr.Length; ++i)
         {
             tiles[state.Arr[i]].transform.position = tilesLocations[i];
@@ -211,20 +219,12 @@ public class PuzzleBoard : MonoBehaviour
 
             // get a random neignbour.
             int rn = Random.Range(0, neighbours.Count);
-            currentState.SwapWithEmpty(
-                neighbours[rn].EmptyTileIndex);
+            currentState.SwapWithEmpty(neighbours[rn].EmptyTileIndex);
             i++;
             SetPuzzleState(currentState, durationPerMove);
             yield return new WaitForSeconds(durationPerMove);
         }
         randomizing = false;
-    }
-
-    public void Randomize()
-    {
-        if (randomizing) return;
-        StartCoroutine(Coroutine_Randomize(100, 0.02f));
-        solved = false;
     }
 
     public IEnumerator Coroutine_MoveOverSeconds(
@@ -283,16 +283,27 @@ public class PuzzleBoard : MonoBehaviour
         }
     }
 
+    public void Randomize()
+    {
+        if (randomizing) return;
+        StartCoroutine(Coroutine_Randomize(100, 0.02f));
+        solved = false;
+
+        statusText.gameObject.SetActive(false);
+    }
+
     public void NextImage()
     {
         if (randomizing) return;
 
         currentTextureIndex++;
-        if(currentTextureIndex == fullTextures.Count)
+        if(currentTextureIndex == puzzleImage.Count)
         {
             currentTextureIndex = 0;
         }
-        currentTexture = fullTextures[currentTextureIndex];
+        currentTexture = puzzleImage[currentTextureIndex];
         Init();
     }
+
+
 }

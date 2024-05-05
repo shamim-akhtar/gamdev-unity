@@ -7,13 +7,11 @@ public class PuzzleBoard : MonoBehaviour
 {
     public List<Texture> puzzleImage = new List<Texture>();
     public GameObject tilePrefab;
-    public TMPro.TextMeshProUGUI statusText;
+    public TextMeshProUGUI statusText;
 
-    List<GameObject> tiles = new List<GameObject>();
+    private List<GameObject> tiles = new List<GameObject>();
 
-    private Dictionary<int, List<int>> edges = new Dictionary<int, List<int>>();
-
-    List<Vector3> tilesLocations = new List<Vector3>()
+    private List<Vector3> tilesLocations = new List<Vector3>()
     {
         new (-1, 1, 0),
         new ( 0, 1, 0),
@@ -26,19 +24,19 @@ public class PuzzleBoard : MonoBehaviour
         new (1, -1, 0),
     };
 
-    PuzzleState currentState = null;
-    bool solved = false; 
-    PuzzleState solvedState = new PuzzleState();
-    Texture currentTexture = null;
-    int currentTextureIndex = 0;
-
-    bool randomizing = false;
+    private PuzzleState currentState = null;
+    private bool solved = false; 
+    private PuzzleState solvedState = new PuzzleState();
+    private Texture currentTexture = null;
+    private int currentTextureIndex = 0;
+    private bool randomizing = false;
 
     // Start is called before the first frame update
     void Start()
     {
+        PuzzleState.CreateNeighbourIndices(3);
+
         currentTexture = puzzleImage[currentTextureIndex];
-        CreateNeighbourIndices(3);
         CreateTiles();
         Init();
     }
@@ -68,7 +66,7 @@ public class PuzzleBoard : MonoBehaviour
                 //Debug.Log(obj.name);
                 // check for tile movement.
                 int zero = currentState.EmptyTileIndex;
-                List<int> neighbours = GetNeighbourIndices(zero);
+                List<int> neighbours = PuzzleState.GetNeighbourIndices(zero);
 
                 for (int i = 0; i < neighbours.Count; ++i)
                 {
@@ -91,7 +89,7 @@ public class PuzzleBoard : MonoBehaviour
 
     void CreateTiles()
     {
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < 9; ++i)
         {
             GameObject tile = Instantiate(tilePrefab);
             tile.name = i.ToString();
@@ -101,19 +99,6 @@ public class PuzzleBoard : MonoBehaviour
             tiles.Add(tile);
             tiles[i].transform.position = tilesLocations[i];
         }
-        GameObject empty = Instantiate(tilePrefab);
-        empty.name = "empty_tile";
-        empty.transform.parent = transform;
-
-        // Get the Renderer component of the cube GameObject
-        Renderer empty_renderer = empty.GetComponent<Renderer>();
-        // Create a new material
-        Material empty_material = empty_renderer.material;
-
-        // Assign the texture to the material's main texture property
-        empty_material.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-        tiles.Add(empty);
-        tiles[8].transform.position = tilesLocations[8];
     }
 
     void SetTexture()
@@ -145,6 +130,8 @@ public class PuzzleBoard : MonoBehaviour
             material.mainTextureScale = new Vector2((float)tileSize / mainTexture.width, (float)tileSize / mainTexture.height);
             material.mainTextureOffset = new Vector2(xMin, yMin);
         }
+        // Last one we set the material to transparent color.
+        tiles[8].GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
     }
 
     public void SetPuzzleState(PuzzleState state)
@@ -156,58 +143,6 @@ public class PuzzleBoard : MonoBehaviour
         }
     }
 
-    List<PuzzleState> GetNeighbourOfEmpty(PuzzleState state)
-    {
-        List<PuzzleState> neighbours =
-          new List<PuzzleState>();
-
-        int zero = state.EmptyTileIndex;
-
-        List<int> intArray = GetNeighbourIndices(zero);
-        for (int i = 0; i < intArray.Count; ++i)
-        {
-            PuzzleState new_state = new PuzzleState(state);
-            new_state.SwapWithEmpty(intArray[i]);
-            neighbours.Add(new_state);
-        }
-        return neighbours;
-    }
-
-    public List<int> GetNeighbourIndices(int id)
-    {
-        return edges[id];
-    }
-
-    private void CreateNeighbourIndices(int rowsOrCols)
-    {
-        for (int i = 0; i < rowsOrCols; i++)
-        {
-            for (int j = 0; j < rowsOrCols; j++)
-            {
-                int index = i * rowsOrCols + j;
-                List<int> li = new List<int>();
-                if (i - 1 >= 0)
-                {
-                    li.Add((i - 1) * rowsOrCols + j);
-                }
-                if (i + 1 < rowsOrCols)
-                {
-                    li.Add((i + 1) * rowsOrCols + j);
-                }
-                if (j - 1 >= 0)
-                {
-                    li.Add(i * rowsOrCols + j - 1);
-                }
-                if (j + 1 < rowsOrCols)
-                {
-                    li.Add(i * rowsOrCols + j + 1);
-                }
-
-                edges[index] = li;
-            }
-        }
-    }
-
 
     IEnumerator Coroutine_Randomize(int depth, float durationPerMove)
     {
@@ -215,7 +150,7 @@ public class PuzzleBoard : MonoBehaviour
         int i = 0;
         while (i < depth)
         {
-            List<PuzzleState> neighbours = GetNeighbourOfEmpty(currentState);
+            List<PuzzleState> neighbours = PuzzleState.GetNeighbourOfEmpty(currentState);
 
             // get a random neignbour.
             int rn = Random.Range(0, neighbours.Count);
@@ -304,6 +239,4 @@ public class PuzzleBoard : MonoBehaviour
         currentTexture = puzzleImage[currentTextureIndex];
         Init();
     }
-
-
 }

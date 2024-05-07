@@ -37,7 +37,7 @@ public class PuzzleState : IEquatable<PuzzleState>
     /// <param name="other">The puzzle state to copy.</param>
     public PuzzleState(PuzzleState other)
     {
-        Arr = other.Arr.ToArray();
+        other.Arr.CopyTo(Arr, 0);
         EmptyTileIndex = other.EmptyTileIndex;
     }
 

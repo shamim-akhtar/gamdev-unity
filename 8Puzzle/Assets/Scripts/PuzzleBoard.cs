@@ -9,6 +9,9 @@ public class PuzzleBoard : MonoBehaviour
     public List<Texture> puzzleImage = new List<Texture>();
     public GameObject tilePrefab;
     public TextMeshProUGUI statusText;
+    public TextMeshProUGUI yourMoves;
+    public TextMeshProUGUI solverMoves;
+    public Transform parent;
 
     private List<GameObject> tiles = new List<GameObject>();
 
@@ -33,6 +36,9 @@ public class PuzzleBoard : MonoBehaviour
     private bool randomizing = false;
     private AStarPathFinder<PuzzleState> pathfinder = new AStarPathFinder<PuzzleState>();
     bool solving_using_pathfinding = false;
+    int yourMoveCount = 0;
+    int solverMovesCount = 0;
+    PuzzleState resetState = new PuzzleState();
 
     // Start is called before the first frame update
     void Start()
@@ -52,6 +58,12 @@ public class PuzzleBoard : MonoBehaviour
 
         statusText.gameObject.SetActive(true);
         statusText.text = "Puzzle in solved state. Randomize to play!";
+        solverMoves.gameObject.SetActive(false);
+        yourMoves.gameObject.SetActive(false);
+        yourMoveCount = 0;
+        solverMovesCount = 0;
+
+        resetState = new PuzzleState(); 
     }
 
     // Update is called once per frame
@@ -75,6 +87,10 @@ public class PuzzleBoard : MonoBehaviour
                 {
                     if (obj.name == currentState.Arr[neighbours[i]].ToString())
                     {
+                        yourMoveCount++;
+                        yourMoves.text = yourMoveCount.ToString();
+                        yourMoves.gameObject.SetActive(true);
+
                         currentState.SwapWithEmpty(neighbours[i]);
                         SetPuzzleState(currentState, 0.1f);
                         solved = currentState.Equals(solvedState);
@@ -94,13 +110,13 @@ public class PuzzleBoard : MonoBehaviour
     {
         for (int i = 0; i < 9; ++i)
         {
-            GameObject tile = Instantiate(tilePrefab);
+            GameObject tile = Instantiate(tilePrefab);//, tilesLocations[i], Quaternion.identity);
+            tile.transform.localPosition = tilesLocations[i];
             tile.name = i.ToString();
-            tile.transform.parent = transform;
+            tile.transform.SetParent(parent, false);
 
             // Add tile to the list and position it
             tiles.Add(tile);
-            tiles[i].transform.position = tilesLocations[i];
         }
     }
 
@@ -163,6 +179,7 @@ public class PuzzleBoard : MonoBehaviour
             yield return new WaitForSeconds(durationPerMove);
         }
         randomizing = false;
+        resetState = new PuzzleState(currentState);
     }
 
     public IEnumerator Coroutine_MoveOverSeconds(
@@ -231,6 +248,15 @@ public class PuzzleBoard : MonoBehaviour
         statusText.gameObject.SetActive(false);
     }
 
+    public void Reset()
+    {
+        SetPuzzleState(resetState);
+        yourMoveCount = 0;
+        yourMoves.text = yourMoveCount.ToString();
+        yourMoves.gameObject.SetActive(false);
+        solverMoves.gameObject.SetActive(false);
+    }
+
     public void NextImage()
     {
         if (solving_using_pathfinding) return;
@@ -259,7 +285,7 @@ public class PuzzleBoard : MonoBehaviour
     {
         statusText.gameObject.SetActive(true);
         statusText.text = "Finding solution.";
-        pathfinder.Initialise(new PuzzleNode(currentState), new PuzzleNode(new PuzzleState()));
+        pathfinder.Initialise(new PuzzleNode(new PuzzleState(resetState)), new PuzzleNode(new PuzzleState()));
         while (pathfinder.Status == PathFinderStatus.RUNNING)
         {
             pathfinder.Step();
@@ -294,6 +320,9 @@ public class PuzzleBoard : MonoBehaviour
             {
                 for (int i = reverseSolution.Count - 2; i >= 0; i -= 1)
                 {
+                    solverMovesCount++;
+                    solverMoves.text = solverMovesCount.ToString();
+                    solverMoves.gameObject.SetActive(true);
                     SetPuzzleState(reverseSolution[i], 0.5f);
                     yield return new WaitForSeconds(1.0f);
                 }
@@ -307,7 +336,7 @@ public class PuzzleBoard : MonoBehaviour
     public void Solve()
     {
         if (solving_using_pathfinding) return;
-
+        solverMovesCount = 0;
         solving_using_pathfinding = true;
         pathfinder.HeuristicCost = ManhattanCost;
         pathfinder.NodeTraversalCost = TraversalCost;

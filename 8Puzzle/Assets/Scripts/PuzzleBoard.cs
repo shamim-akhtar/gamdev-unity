@@ -1,3 +1,4 @@
+using PathFinding;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -30,6 +31,8 @@ public class PuzzleBoard : MonoBehaviour
     private Texture currentTexture = null;
     private int currentTextureIndex = 0;
     private bool randomizing = false;
+    private AStarPathFinder<PuzzleState> pathfinder = new AStarPathFinder<PuzzleState>();
+    bool solving_using_pathfinding = false;
 
     // Start is called before the first frame update
     void Start()
@@ -220,6 +223,7 @@ public class PuzzleBoard : MonoBehaviour
 
     public void Randomize()
     {
+        if (solving_using_pathfinding) return;
         if (randomizing) return;
         StartCoroutine(Coroutine_Randomize(100, 0.02f));
         solved = false;
@@ -229,6 +233,7 @@ public class PuzzleBoard : MonoBehaviour
 
     public void NextImage()
     {
+        if (solving_using_pathfinding) return;
         if (randomizing) return;
 
         currentTextureIndex++;
@@ -238,5 +243,74 @@ public class PuzzleBoard : MonoBehaviour
         }
         currentTexture = puzzleImage[currentTextureIndex];
         Init();
+    }
+
+    static public float ManhattanCost(PuzzleState a, PuzzleState b)
+    {
+        return (float)a.GetManhattanCost();
+    }
+
+    static public float TraversalCost(PuzzleState a, PuzzleState b)
+    {
+        return 1.0f;
+    }
+
+    IEnumerator Coroutine_Solve()
+    {
+        statusText.gameObject.SetActive(true);
+        statusText.text = "Finding solution.";
+        pathfinder.Initialise(new PuzzleNode(currentState), new PuzzleNode(new PuzzleState()));
+        while (pathfinder.Status == PathFinderStatus.RUNNING)
+        {
+            pathfinder.Step();
+            yield return null;
+        }
+        if (pathfinder.Status == PathFinderStatus.SUCCESS)
+        {
+            StartCoroutine(Coroutine_ShowSolution());
+        }
+        if (pathfinder.Status == PathFinderStatus.FAILURE)
+        {
+            Debug.Log("Failure");
+        }
+    }
+
+    IEnumerator Coroutine_ShowSolution()
+    {
+        List<PuzzleState> reverseSolution = new List<PuzzleState>();
+        PathFinder<PuzzleState>.PathFinderNode node = pathfinder.CurrentNode;
+        while (node != null)
+        {
+            reverseSolution.Add(node.Location.Value);
+            node = node.Parent;
+        }
+
+        statusText.text = "Found solution. The puzzle can be solved in " + reverseSolution.Count.ToString() + " moves.";
+        if (reverseSolution.Count > 0)
+        {
+            SetPuzzleState(reverseSolution[reverseSolution.Count - 1]);
+
+            if (reverseSolution.Count > 2)
+            {
+                for (int i = reverseSolution.Count - 2; i >= 0; i -= 1)
+                {
+                    SetPuzzleState(reverseSolution[i], 0.5f);
+                    yield return new WaitForSeconds(1.0f);
+                }
+            }
+        }
+        statusText.text = "Puzzle in solved state. Randomize to play!";
+
+        solving_using_pathfinding = false;
+    }
+
+    public void Solve()
+    {
+        if (solving_using_pathfinding) return;
+
+        solving_using_pathfinding = true;
+        pathfinder.HeuristicCost = ManhattanCost;
+        pathfinder.NodeTraversalCost = TraversalCost;
+        StartCoroutine(Coroutine_Solve());
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 /// Represents the state of a puzzle board with a 3x3 grid of tiles.
 /// Each state contains an array representing the tile arrangement and the index of the empty tile.
 /// </summary>
-public class PuzzleState
+public class PuzzleState : IEquatable<PuzzleState>
 {
     // Static dictionary to store precalculated neighbour indices for each tile
     static private Dictionary<int, List<int>> edges = new Dictionary<int, List<int>>();
@@ -121,5 +121,33 @@ public class PuzzleState
                 edges[index] = neighbourIndices;
             }
         }
+    }
+
+    public int GetManhattanCost()
+    {
+        int numRowsOrCols = 3;
+        int cost = 0;
+        for (int i = 0; i < Arr.Length; ++i)
+        {
+            int v = Arr[i];
+            if (v == Arr.Length - 1) continue;
+
+            int gx = v % numRowsOrCols;
+            int gy = v / numRowsOrCols;
+
+            int x = i % numRowsOrCols;
+            int y = i / numRowsOrCols;
+
+            int mancost = System.Math.Abs(x - gx) + System.Math.Abs(y - gy);
+            cost += mancost;
+        }
+        return cost;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as PuzzleState);
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Arr, EmptyTileIndex);
     }
 }

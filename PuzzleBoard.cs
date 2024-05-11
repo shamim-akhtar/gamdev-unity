@@ -65,7 +65,7 @@ public class PuzzleBoard : MonoBehaviour
 
     void CreateTiles()
     {
-        for (int i = 0; i < tilesLocation.Count; i++)
+        for(int i = 0; i < tilesLocation.Count; i++)
         {
             GameObject tile = Instantiate(tilePrefab);
             tile.name = i.ToString();
@@ -81,7 +81,7 @@ public class PuzzleBoard : MonoBehaviour
         int numRows = 3;
         int tileSize = mainTexture.width / numRows;
 
-        for (int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
         {
             GameObject tile = tiles[i];
             Renderer renderer = tile.GetComponent<Renderer>();
@@ -91,12 +91,12 @@ public class PuzzleBoard : MonoBehaviour
             int row = i / numRows;
             int col = i % numRows;
 
-            float xMin = col * (float)tileSize / mainTexture.width;
+            float xMin = col * (float)tileSize/mainTexture.width;
             float yMin = 1.0f - (row + 1) * (float)tileSize / mainTexture.height;
 
             material.mainTexture = mainTexture;
-            material.mainTextureScale = new Vector2((float)tileSize / mainTexture.width,
-                (float)tileSize / mainTexture.height);
+            material.mainTextureScale = new Vector2((float)tileSize/mainTexture.width,
+                (float)tileSize/mainTexture.height);
             material.mainTextureOffset = new Vector2(xMin, yMin);
         }
 
@@ -109,7 +109,7 @@ public class PuzzleBoard : MonoBehaviour
         if (solvingUsingAStarInProgress) return;
         Debug.Log("NextImage.");
         currentTextureIndex++;
-        if (currentTextureIndex == puzzleImages.Count)
+        if(currentTextureIndex == puzzleImages.Count)
         {
             currentTextureIndex = 0;
         }
@@ -119,22 +119,22 @@ public class PuzzleBoard : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.N))
+        if(Input.GetKeyDown(KeyCode.N))
         {
             NextImage();
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if(Input.GetMouseButtonDown(0))
         {
             GameObject obj = PickTile();
-            if (obj != null && !solved)
+            if(obj != null && !solved)
             {
                 int empty = currentState.EmptyTileIndex;
                 List<int> neighbours = PuzzleState.GetNeighbourIndices(empty);
 
-                for (int i = 0; i < neighbours.Count; i++)
+                for(int i = 0; i < neighbours.Count; i++) 
                 {
-                    if (obj.name == currentState.Arr[neighbours[i]].ToString())
+                    if(obj.name == currentState.Arr[neighbours[i]].ToString())
                     {
                         numberOfMoves++;
                         numberOfMovesText.gameObject.SetActive(true);
@@ -144,7 +144,7 @@ public class PuzzleBoard : MonoBehaviour
 
                         solved = currentState.Equals(goalState);
 
-                        if (solved)
+                        if(solved)
                         {
                             statusText.gameObject.SetActive(true);
                             statusText.text = "Yay! You have solved the puzzle. Click Next to play a new puzzle";
@@ -154,7 +154,7 @@ public class PuzzleBoard : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if(Input.GetKeyDown(KeyCode.R))
         {
             StartCoroutine(Coroutine_Randomize(100, 0.02f));
         }
@@ -163,7 +163,7 @@ public class PuzzleBoard : MonoBehaviour
     public void SetPuzzleState(PuzzleState state)
     {
         currentState = state;
-        for (int i = 0; i < state.Arr.Length; i++)
+        for(int i = 0; i < state.Arr.Length; i++)
         {
             tiles[state.Arr[i]].transform.position = tilesLocation[i];
         }
@@ -188,7 +188,7 @@ public class PuzzleBoard : MonoBehaviour
 
         RaycastHit hitInfo;
 
-        if (Physics.Raycast(ray, out hitInfo))
+        if(Physics.Raycast(ray, out hitInfo))
         {
             GameObject hitObject = hitInfo.collider.gameObject;
             return hitObject;
@@ -204,7 +204,7 @@ public class PuzzleBoard : MonoBehaviour
         float elaspedTime = 0;
         Vector3 startingPos = objectToMove.transform.position;
 
-        while (elaspedTime < seconds)
+        while(elaspedTime < seconds)
         {
             objectToMove.transform.position = Vector3.Lerp(
                 startingPos, end,
@@ -248,7 +248,7 @@ public class PuzzleBoard : MonoBehaviour
 
     public void Reset()
     {
-        if (solvingUsingAStarInProgress) return;
+        if(solvingUsingAStarInProgress) return;
         SetPuzzleState(new PuzzleState(randomizedState));
         numberOfMoves = 0;
         numberOfMovesText.gameObject.SetActive(false);
@@ -272,18 +272,18 @@ public class PuzzleBoard : MonoBehaviour
         pathFinder.Initialise(new PuzzleNode(new PuzzleState(randomizedState)),
             new PuzzleNode(new PuzzleState()));
 
-        while (pathFinder.Status == PathFinderStatus.RUNNING)
+        while(pathFinder.Status == PathFinderStatus.RUNNING)
         {
             pathFinder.Step();
             yield return null;
         }
 
-        if (pathFinder.Status == PathFinderStatus.SUCCESS)
+        if(pathFinder.Status == PathFinderStatus.SUCCESS)
         {
             // We will show the solution.
             StartCoroutine(Coroutine_ShowSolution());
         }
-        if (pathFinder.Status != PathFinderStatus.FAILURE)
+        if(pathFinder.Status != PathFinderStatus.FAILURE)
         {
             Debug.Log("No solution found!");
         }
@@ -294,22 +294,22 @@ public class PuzzleBoard : MonoBehaviour
         List<PuzzleState> reverseSolution = new List<PuzzleState>();
         PathFinder<PuzzleState>.PathFinderNode node = pathFinder.CurrentNode;
 
-        while (node != null)
+        while(node != null)
         {
             reverseSolution.Add(node.Location.Value);
             node = node.Parent;
         }
 
-        statusText.text = "Solution found! The puzzle can be solved in " +
+        statusText.text = "Solution found! The puzzle can be solved in " + 
             (reverseSolution.Count - 1).ToString() + " moves.";
 
-        if (reverseSolution.Count > 0)
+        if(reverseSolution.Count > 0)
         {
             SetPuzzleState(reverseSolution[reverseSolution.Count - 1]);
         }
-        if (reverseSolution.Count > 2)
+        if(reverseSolution.Count > 2)
         {
-            for (int i = reverseSolution.Count - 2; i >= 0; i -= 1)
+            for(int i = reverseSolution.Count - 2; i >= 0; i -= 1)
             {
                 numberOfMovesAStar++;
                 numberOfMovesText.text = numberOfMovesAStar.ToString();

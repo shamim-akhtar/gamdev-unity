@@ -27,6 +27,8 @@ Through this exercise, you will gain hands-on experience with Unity’s modellin
 alt="Video" border="10" /></a>
 
 ## 2. 8-Puzzle Problem Using A* in C# and Unity
+The source code for this tutorial is in the branch https://github.com/shamim-akhtar/gamdev-unity/tree/8-puzzle.
+
 ![Unity](https://img.shields.io/badge/Unity-2022.3.24f1-green?style=for-the-badge) ![C#](https://img.shields.io/badge/%20-C%23-blue?style=for-the-badge) ![Level](https://img.shields.io/badge/Intermediate-8A2BE2?style=for-the-badge)
 [![Featured Image](https://github.com/shamim-akhtar/gamdev-unity/blob/8-puzzle/Thumbnail.png)](https://faramira.com/8-puzzle-problem-using-astar-in-csharp-and-unity/)
 [Read the tutorial](https://faramira.com/8-puzzle-problem-using-astar-in-csharp-and-unity/)

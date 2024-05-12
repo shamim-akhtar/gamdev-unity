@@ -29,7 +29,12 @@ public class PuzzleState : IEquatable<PuzzleState>
     public override bool Equals(object obj) => Equals(obj as PuzzleState);
     public override int GetHashCode()
     {
-        return HashCode.Combine(Arr.Length, EmptyTileIndex);
+        int hc = Arr.Length;
+        foreach (int val in Arr)
+        {
+            hc = unchecked(hc * 314159 + val);
+        }
+        return hc;
     }
 
     public void FindEmptyTileIndex()

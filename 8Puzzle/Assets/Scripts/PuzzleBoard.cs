@@ -91,17 +91,24 @@ public class PuzzleBoard : MonoBehaviour
             int row = i / numRows;
             int col = i % numRows;
 
-            float xMin = col * (float)tileSize / mainTexture.width;
-            float yMin = 1.0f - (row + 1) * (float)tileSize / mainTexture.height;
+            float xMin = col * 
+                (float)tileSize / mainTexture.width;
+
+            float yMin = 1.0f - (row + 1) * 
+                (float)tileSize / mainTexture.height;
 
             material.mainTexture = mainTexture;
-            material.mainTextureScale = new Vector2((float)tileSize / mainTexture.width,
+            material.mainTextureScale = new Vector2(
+                (float)tileSize / mainTexture.width,
                 (float)tileSize / mainTexture.height);
+
             material.mainTextureOffset = new Vector2(xMin, yMin);
         }
 
-        // We want the last tile to be empty and hence transparent in color.
-        tiles[8].GetComponent<Renderer>().material.color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+        // We want the last tile to be empty and hence
+        // transparent in color.
+        tiles[8].GetComponent<Renderer>().material.color = 
+            new Color(0.0f, 0.0f, 0.0f, 0.0f);
     }
 
     public void NextImage()
@@ -130,11 +137,13 @@ public class PuzzleBoard : MonoBehaviour
             if (obj != null && !solved)
             {
                 int empty = currentState.EmptyTileIndex;
-                List<int> neighbours = PuzzleState.GetNeighbourIndices(empty);
+                List<int> neighbours = 
+                    PuzzleState.GetNeighbourIndices(empty);
 
                 for (int i = 0; i < neighbours.Count; i++)
                 {
-                    if (obj.name == currentState.Arr[neighbours[i]].ToString())
+                    if (obj.name == 
+                        currentState.Arr[neighbours[i]].ToString())
                     {
                         numberOfMoves++;
                         numberOfMovesText.gameObject.SetActive(true);
@@ -147,7 +156,9 @@ public class PuzzleBoard : MonoBehaviour
                         if (solved)
                         {
                             statusText.gameObject.SetActive(true);
-                            statusText.text = "Yay! You have solved the puzzle. Click Next to play a new puzzle";
+                            statusText.text = "Yay! " +
+                                "You have solved the puzzle. " +
+                                "Click Next to play a new puzzle";
                         }
                     }
                 }
@@ -206,9 +217,10 @@ public class PuzzleBoard : MonoBehaviour
 
         while (elaspedTime < seconds)
         {
-            objectToMove.transform.position = Vector3.Lerp(
-                startingPos, end,
-                elaspedTime / seconds);
+            objectToMove.transform.position = 
+                Vector3.Lerp(
+                    startingPos, end,
+                    elaspedTime / seconds);
             elaspedTime += Time.deltaTime;
 
             yield return new WaitForEndOfFrame();
@@ -216,13 +228,15 @@ public class PuzzleBoard : MonoBehaviour
         objectToMove.transform.position = end;
     }
 
-    IEnumerator Coroutine_Randomize(int depth, float durationPerMove)
+    IEnumerator Coroutine_Randomize(int depth, 
+        float durationPerMove)
     {
         randomizing = true;
         int i = 0;
         while (i < depth)
         {
-            List<PuzzleState> neighbours = PuzzleState.GetNeighbourOfEmpty(currentState);
+            List<PuzzleState> neighbours = 
+                PuzzleState.GetNeighbourOfEmpty(currentState);
 
             // get a random index.
             int rn = Random.Range(0, neighbours.Count);
